@@ -1,63 +1,38 @@
-// Import required modules
-const express = require('express');
-const mongoose = require('mongoose');
-const chalk = require('chalk'); // For colored console messages
+import express from 'express';
+import { MongoClient } from 'mongodb';
 
-// Create an Express app
 const app = express();
+const port = 3000;
 
-// Define a port
-const PORT = 3000;
+const url = 'mongodb://localhost:27017'; // replace with your MongoDB URL
+const dbName = 'testdb';
 
-// MongoDB connection string (replace with your connection string)
-const MONGO_URI = 'mongodb://localhost:27017/your-database-name';
+app.use(express.static('public'));
 
-// Connect to MongoDB
-mongoose
-  .connect(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log(chalk.green('Connected to MongoDB successfully.'));
+MongoClient.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then((client) => {
+    console.log('Connected to MongoDB');
+    const db = client.db(dbName);
+    const collection = db.collection('messages');
+
+    app.get('/', (req, res) => {
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Node.js with MongoDB</title>
+          </head>
+          <body>
+            <h1 style="color: red;">Happy</h1>
+          </body>
+        </html>
+      `);
+    });
+
+    app.listen(port, () => {
+      console.log(`Server is running at http://localhost:${port}`);
+    });
   })
   .catch((err) => {
-    console.error(chalk.red('Error connecting to MongoDB:', err));
+    console.error('Failed to connect to MongoDB:', err);
   });
-
-// Define a basic route
-app.get('/', (req, res) => {
-  res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Server Status</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background-color: #f4f4f4;
-    }
-    .message {
-      color: green;
-      font-size: 24px;
-      font-weight: bold;
-    }
-  </style>
-</head>
-<body>
-  <div class="message">Live Start</div>
-</body>
-</html>`);
-});
-
-// Start the server
-app.listen(PORT, () => {
-  console.log(chalk.green('Live Start'));
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
